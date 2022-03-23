@@ -1,0 +1,36 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Users {
+  id: Int!
+  name: String!
+  email: String!
+  phone: String
+  locale: String
+  role: String
+  created_at: DateTime!
+  updated_at: DateTime!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Query {
+  getUserByEmail(email: String!): Users
+  getAllUsers: [Users]!
+}
+
+type Mutation {
+  createUser(createUserInput: CreateUserInput!): Users
+}
+
+input CreateUserInput {
+  email: String!
+  name: String!
+  phone: String
+  locale: String
+  role: String = "admin"
+}
