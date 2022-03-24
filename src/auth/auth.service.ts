@@ -126,20 +126,20 @@ export class AuthService {
       sub: responseUser.id,
       role: responseUser.role,
       'https://hasura.io/jwt/claims': {
-        'x-hasura-allowed-roles': ['admin', 'editor', 'commentor', 'viewer'],
+        'x-hasura-allowed-roles': ['master', 'editor', 'commentor', 'viewer'],
         'x-hasura-default-role': 'viewer',
         'x-hasura-user-id': responseUser.id,
         'x-hasura-role': responseUser.role,
       },
       iat: Math.round(new Date().getTime() / 1000),
-      exp: Math.round(new Date().getTime() / 1000 + 30), // 30s
+      exp: Math.round(new Date().getTime() / 1000 + 300), // 30s
     });
 
     const refreshTokenJWT: string = this.jwtService.sign({
       sub: responseUser.id,
       role: responseUser.role,
       'https://hasura.io/jwt/claims': {
-        'x-hasura-allowed-roles': ['admin', 'editor', 'commentor', 'viewer'],
+        'x-hasura-allowed-roles': ['master', 'editor', 'commentor', 'viewer'],
         'x-hasura-default-role': 'viewer',
         'x-hasura-user-id': responseUser.id,
         'x-hasura-role': responseUser.role,
