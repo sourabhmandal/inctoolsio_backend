@@ -16,7 +16,7 @@ export class UsersService {
 
   async createUser(user: CreateUserInput): Promise<Users> {
     if (!user.role) {
-      user.role = 'admin';
+      user.role = 'master';
     }
     const newuser: Users = this.userRepo.create(user);
     try {
