@@ -3,6 +3,7 @@ import { Users } from 'src/users/user.model';
 import { UsersService } from 'src/users/users.service';
 import { UserLoggedInResponse } from './types';
 import { JwtService } from '@nestjs/jwt';
+import { EntityNotFoundError } from 'typeorm';
 
 function isBlank(str: string) {
   return !str || /^\s*$/.test(str);
@@ -65,10 +66,9 @@ export class AuthService {
     const existingUser = await this.userService.getUserByEmail({
       email: email,
     });
-
-    if (existingUser.id) {
-      responseUser = existingUser;
-    } else {
+    responseUser = existingUser;
+    if (!responseUser) {
+      console.log('resgiter new user');
       const savedUser: Users = await this.userService.createUser({
         email,
         name,
@@ -77,6 +77,8 @@ export class AuthService {
       userType = 'New';
       responseUser = savedUser;
     }
+
+    console.log(responseUser);
 
     // create tokens
     const accessTokenJWT: string = this.jwtService.sign({
