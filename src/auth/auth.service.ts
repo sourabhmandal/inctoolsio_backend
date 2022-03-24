@@ -3,7 +3,6 @@ import { Users } from 'src/users/user.model';
 import { UsersService } from 'src/users/users.service';
 import { UserLoggedInResponse } from './types';
 import { JwtService } from '@nestjs/jwt';
-import { EntityNotFoundError } from 'typeorm';
 
 function isBlank(str: string) {
   return !str || /^\s*$/.test(str);
@@ -68,7 +67,6 @@ export class AuthService {
     });
     responseUser = existingUser;
     if (!responseUser) {
-      console.log('resgiter new user');
       const savedUser: Users = await this.userService.createUser({
         email,
         name,
@@ -77,20 +75,29 @@ export class AuthService {
       userType = 'New';
       responseUser = savedUser;
     }
-
-    console.log(responseUser);
-
     // create tokens
     const accessTokenJWT: string = this.jwtService.sign({
       iss: 'inctools.io',
       sub: responseUser.id,
       role: responseUser.role,
+      'https://hasura.io/jwt/claims': {
+        'x-hasura-allowed-roles': ['admin', 'editor', 'commentor', 'viewer'],
+        'x-hasura-default-role': 'viewer',
+        'x-hasura-user-id': responseUser.id,
+        'x-hasura-role': responseUser.role,
+      },
     });
 
     const refreshTokenJWT: string = this.jwtService.sign({
       iss: 'inctools.io',
       sub: responseUser.id,
       role: responseUser.role,
+      'https://hasura.io/jwt/claims': {
+        'x-hasura-allowed-roles': ['admin', 'editor', 'commentor', 'viewer'],
+        'x-hasura-default-role': 'viewer',
+        'x-hasura-user-id': responseUser.id,
+        'x-hasura-role': responseUser.role,
+      },
     });
 
     return {
