@@ -16,7 +16,7 @@ import { ConfigModule } from '@nestjs/config';
     PassportModule,
     JwtModule.register({
       secret: process.env['JWT_SECRET'],
-      signOptions: { expiresIn: '300s' },
+      signOptions: { algorithm: 'HS256', issuer: 'inctools.io' },
     }),
   ],
   providers: [AuthService, GoogleStategy],

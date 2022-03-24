@@ -1,8 +1,9 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Users } from 'src/users/user.model';
 import { UsersService } from 'src/users/users.service';
 import { UserLoggedInResponse } from './types';
 import { JwtService } from '@nestjs/jwt';
+import { TokenExpiredError } from 'jsonwebtoken';
 
 function isBlank(str: string) {
   return !str || /^\s*$/.test(str);
@@ -75,36 +76,81 @@ export class AuthService {
       userType = 'New';
       responseUser = savedUser;
     }
-    // create tokens
-    const accessTokenJWT: string = this.jwtService.sign({
-      iss: 'inctools.io',
-      sub: responseUser.id,
-      role: responseUser.role,
-      'https://hasura.io/jwt/claims': {
-        'x-hasura-allowed-roles': ['admin', 'editor', 'commentor', 'viewer'],
-        'x-hasura-default-role': 'viewer',
-        'x-hasura-user-id': responseUser.id,
-        'x-hasura-role': responseUser.role,
-      },
-    });
 
-    const refreshTokenJWT: string = this.jwtService.sign({
-      iss: 'inctools.io',
-      sub: responseUser.id,
-      role: responseUser.role,
-      'https://hasura.io/jwt/claims': {
-        'x-hasura-allowed-roles': ['admin', 'editor', 'commentor', 'viewer'],
-        'x-hasura-default-role': 'viewer',
-        'x-hasura-user-id': responseUser.id,
-        'x-hasura-role': responseUser.role,
-      },
-    });
+    const { accessTokenJWT, refreshTokenJWT } = this.genrateJWT(responseUser);
 
     return {
       status: HttpStatus.OK,
       message: userType,
       accessToken: accessTokenJWT,
       refreshToken: refreshTokenJWT,
+    };
+  }
+
+  async refreshJWT(refresh: string): Promise<any> {
+    // validate refresh token
+    try {
+      this.jwtService.verify(refresh);
+      const decoded = this.jwtService.decode(refresh, { json: true });
+      const user = await this.userService.getUserById(parseInt(decoded['sub']));
+      const { accessTokenJWT, refreshTokenJWT } = this.genrateJWT(user);
+      return {
+        accessTokenJWT,
+        refreshTokenJWT,
+      };
+    } catch (err) {
+      if (err instanceof TokenExpiredError) {
+        throw new HttpException(
+          {
+            status: HttpStatus.BAD_REQUEST,
+            message: 'Refresh token expired. Please login',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      throw new HttpException(
+        {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: 'Cannot Process this request',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    return {};
+  }
+
+  genrateJWT(responseUser: Users) {
+    // create tokens
+    const accessTokenJWT: string = this.jwtService.sign({
+      sub: responseUser.id,
+      role: responseUser.role,
+      'https://hasura.io/jwt/claims': {
+        'x-hasura-allowed-roles': ['admin', 'editor', 'commentor', 'viewer'],
+        'x-hasura-default-role': 'viewer',
+        'x-hasura-user-id': responseUser.id,
+        'x-hasura-role': responseUser.role,
+      },
+      iat: Math.round(new Date().getTime() / 1000),
+      exp: Math.round(new Date().getTime() / 1000 + 30), // 30s
+    });
+
+    const refreshTokenJWT: string = this.jwtService.sign({
+      sub: responseUser.id,
+      role: responseUser.role,
+      'https://hasura.io/jwt/claims': {
+        'x-hasura-allowed-roles': ['admin', 'editor', 'commentor', 'viewer'],
+        'x-hasura-default-role': 'viewer',
+        'x-hasura-user-id': responseUser.id,
+        'x-hasura-role': responseUser.role,
+      },
+      iat: Math.round(new Date().getTime() / 1000),
+      exp: Math.round(new Date().getTime() / 1000 + 3600), // 1h
+    });
+
+    return {
+      accessTokenJWT,
+      refreshTokenJWT,
     };
   }
 }

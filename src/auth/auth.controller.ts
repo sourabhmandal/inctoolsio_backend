@@ -4,7 +4,9 @@ import {
   UseGuards,
   Request,
   UnauthorizedException,
+  Post,
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 
@@ -25,5 +27,12 @@ export class AuthController {
     } else {
       throw new UnauthorizedException('User not authenticated');
     }
+  }
+
+  @Post('token/refresh')
+  async refreshToken(@Request() req) {
+    // validate Refresh Token
+    const resp = await this.authService.refreshJWT(req.body.refreshToken);
+    return resp;
   }
 }

@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { QueryFailedError, Repository } from 'typeorm';
-import { GetUserArgs } from './dto/args/get-user.args';
+import { GetUserByEmailArgs } from './dto/args/get-user.args';
 import { CreateUserInput } from './dto/input/create-user.input';
 import { Users } from './user.model';
 
@@ -39,9 +39,13 @@ export class UsersService {
     }
   }
 
-  async getUserByEmail(email: GetUserArgs): Promise<Users> {
+  async getUserByEmail(email: GetUserByEmailArgs): Promise<Users> {
     const newuser: Users = this.userRepo.create(email);
     return this.userRepo.findOne({ where: { email: newuser.email } });
+  }
+
+  async getUserById(id: number): Promise<Users> {
+    return this.userRepo.findOne(id);
   }
 
   async getAllUsers(): Promise<Users[]> {

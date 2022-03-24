@@ -1,5 +1,5 @@
 import { Resolver, Query, Args, Int, Mutation } from '@nestjs/graphql';
-import { GetUserArgs } from './dto/args/get-user.args';
+import { GetUserByEmailArgs } from './dto/args/get-user.args';
 import { CreateUserInput } from './dto/input/create-user.input';
 import { Users } from './user.model';
 import { UsersService } from './users.service';
@@ -9,7 +9,7 @@ export class UserResolver {
   constructor(private userService: UsersService) {}
 
   @Query(() => Users, { name: 'getUserByEmail', nullable: true })
-  getUserByEmail(@Args() getUserArgs: GetUserArgs): Promise<Users> {
+  getUserByEmail(@Args() getUserArgs: GetUserByEmailArgs): Promise<Users> {
     return this.userService.getUserByEmail(getUserArgs);
   }
 
