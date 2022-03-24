@@ -5,6 +5,8 @@ import {
   Request,
   UnauthorizedException,
   Post,
+  Response,
+  Redirect,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from '@nestjs/passport';
@@ -21,11 +23,20 @@ export class AuthController {
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  googleAuthRedirect(@Request() req) {
+  async googleAuthRedirect(@Request() req, @Response() res) {
     if (req.isAuthenticated()) {
-      return this.authService.googleCallback(req.user);
+      const data = await this.authService.googleCallback(req.user);
+      res
+        .status(301)
+        .redirect(
+          `http://localhost:3000/sessions?userType=${data.message}&accessToken=${data.accessToken}&refreshToken=${data.refreshToken}`,
+        );
     } else {
-      throw new UnauthorizedException('User not authenticated');
+      res
+        .status(500)
+        .redirect(
+          `http://localhost:3000/sessions?error=cannot+authenticate+user`,
+        );
     }
   }
 
@@ -33,6 +44,7 @@ export class AuthController {
   async refreshToken(@Request() req) {
     // validate Refresh Token
     const resp = await this.authService.refreshJWT(req.body.refreshToken);
+
     return resp;
   }
 }
