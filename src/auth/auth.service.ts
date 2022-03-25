@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Req } from '@nestjs/common';
 import { Users } from 'src/users/user.model';
 import { UsersService } from 'src/users/users.service';
 import { UserLoggedInResponse } from './types';
@@ -132,7 +132,7 @@ export class AuthService {
         'x-hasura-role': responseUser.role,
       },
       iat: Math.round(new Date().getTime() / 1000),
-      exp: Math.round(new Date().getTime() / 1000 + 300), // 30s
+      exp: Math.round(new Date().getTime() / 1000) + 30, // 30
     });
 
     const refreshTokenJWT: string = this.jwtService.sign({
@@ -145,7 +145,7 @@ export class AuthService {
         'x-hasura-role': responseUser.role,
       },
       iat: Math.round(new Date().getTime() / 1000),
-      exp: Math.round(new Date().getTime() / 1000 + 3600), // 1h
+      exp: Math.round(new Date().getTime() / 1000) + 50, // 1h
     });
 
     return {

@@ -3,12 +3,9 @@ import {
   Get,
   UseGuards,
   Request,
-  UnauthorizedException,
   Post,
   Response,
-  Redirect,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 
@@ -43,8 +40,8 @@ export class AuthController {
   @Post('token/refresh')
   async refreshToken(@Request() req) {
     // validate Refresh Token
-    const resp = await this.authService.refreshJWT(req.body.refreshToken);
-
-    return resp;
+    const { accessTokenJWT, refreshTokenJWT } =
+      await this.authService.refreshJWT(req.body.refreshToken);
+    return { accessTokenJWT, refreshTokenJWT };
   }
 }
